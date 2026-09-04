@@ -5,6 +5,8 @@
       branches: [main, feature-stationary]
     pull_request:
       branches: [main]
+    schedule:
+    - cron: '0 9 * * *'
 
   jobs:
     build:
@@ -19,11 +21,24 @@
            with:
             python-version: '3.11'
 
-        - name: Install flake8
-          run: pip install flake8
+        -  name: Install all dependencies
+           run: pip install -r requirements.txt
 
-        - name: Compile check
-          run: python -m py_compile job_status.py
+        -  name: Compile check
+           run: python -m py_compile job_status.py
+
+        -  name: Authenticate to google cloud
+           uses: google-github-actions/auth@v2
+           with:
+            credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+        -  name: Run Job Postings Pipeline
+           env:
+              GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+              BQ_DATASET: ${{ secrets.BQ_DATASET }}
+              BQ_TABLE: ${{ secrets.BQ_TABLE }}
+           run: python job_status.py
+          
 
         - name: Lint with flake8
           run: flake8 Job_API.py --max-line-length=100 --exit-zero
