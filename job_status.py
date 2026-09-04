@@ -52,7 +52,7 @@ def job_post():
                 if not new_cursor:
                     break
                 else:
-                    new_cursor = new_cursor
+                    cursor = new_cursor
                 page_count+=1
             df = pd.DataFrame(all_jobs)
             if df.empty:
@@ -77,7 +77,7 @@ def job_post():
                 print(f'{bq_table} found in {bq_dataset}')
             except NotFound as nf:
                 print(f'Table not found: {nf}')
-                return()
+                return set()
 
             query = f'SELECT Guid from {table_id}'
             query_job = client.query(query)
@@ -103,9 +103,9 @@ def job_post():
                 print('No Data to load')
                 return
             print('performing duplicate check...')
-            new_df = df[~df['Guid'].isin(existing_guids)]
+            new_df = df.drop_duplicates(subset=['Guid'])
             if new_df.empty:
-                print('No Duplicates found')
+                print('No new records to load — all duplicates skipped')
                 return
             client = bigquery.Client(project = project_id)
             table_id = f'{project_id}.{bq_dataset}.{bq_table}'
@@ -115,7 +115,7 @@ def job_post():
                 autodetect = True
             )
 
-            job_load = client.load_table_from_dataframe(df, table_id, job_config = load_config)
+            job_load = client.load_table_from_dataframe(new_df, table_id, job_config = load_config)
             job_load.result()
 
             table_ref = client.get_table(table_id)
