@@ -26,4 +26,5 @@
           run: python -m py_compile job_status.py
 
         - name: Lint with flake8
-          run: flake8 job_status.py --max-line-length = 100 --exit-zero
+          run: flake8 Job_API.py --max-line-length=100 --exit-zero
+        
