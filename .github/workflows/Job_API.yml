@@ -1,0 +1,29 @@
+  name: Job_API
+
+  on:
+    push:
+      branches: [main, feature-stationary]
+    pull_request:
+      branches: [main]
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+
+      steps:
+        -  name: Code checkout
+           uses: actions/checkout@v4
+
+        -  name: Python setup
+           uses: actions/python@v5
+           with:
+            python-version: '3.11'
+
+        - name: Install flake8
+          run: pip install flake8
+
+        - name: Compile check
+          run: python -m py_compile job_status.py
+
+        - name: Lint with flake8
+          run: flake8 job_status.py --max-line-length = 100 --exit-zero
